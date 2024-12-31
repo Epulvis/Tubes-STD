@@ -80,60 +80,141 @@ void displayGroupMembers(Graph& G, string expertiseGroup) {
     }
 }
 
-void displayAllGroups(Graph G) {
+void displayGroupByName(Graph G, string name) {
     adrVertex V = FirstVertex(G);
+    cout << name << " Mengikuti Kelompok Keilmuan : " << endl;
     while (V) {
-        cout << "Kelompok Keilmuan : " << ExpertiseGroups(V) << "\n" << "  - ";
+        bool found = false;
         adrEdge E = FirstEdge(V);
         while (E) {
-            cout << Name(E) << " ";
+            if (Name(E) == name) {
+                found = true;
+                break;
+            }
             E = NextEdge(E);
+        }
+        if (found) {
+            cout << "- " << ExpertiseGroups(V) << endl;
         }
         V = NextVertex(V);
     }
 }
 
-
-void deleteEdge(Graph& G, string name) {
+void displayAllGroups(Graph G) {
     adrVertex V = FirstVertex(G);
     while (V) {
+        cout << "Kelompok Keilmuan : " << ExpertiseGroups(V) << "\n  Mahasiswa: ";
         adrEdge E = FirstEdge(V);
+
+        bool first = true;
         while (E) {
-            if (Name(E) == name) {
-                adrEdge temp = E;
-                E = NextEdge(E);
+            if (!first) {
+                cout << ", ";
+            }
+            cout << Name(E);
+            first = false;
+            E = NextEdge(E);
+        }
+        cout << "\n";
+        V = V->NextVertex;
+    }
+}
+
+void deleteEdgeInAllVertex(Graph& G, string name) {
+    adrVertex V = FirstVertex(G);
+
+    while (V) {
+        adrEdge prev = NULL;
+        adrEdge curr = FirstEdge(V);
+
+        while (curr) {
+            if (Name(curr) == name) {
+                if (prev == NULL) {
+                    FirstEdge(V) = NextEdge(curr);
+                } else {
+                    NextEdge(prev) = NextEdge(curr);
+                }
+                adrEdge temp = curr;
+                curr = NextEdge(curr);
                 delete temp;
             } else {
-                E = NextEdge(E);
+                prev = curr;
+                curr = NextEdge(curr);
             }
         }
         V = NextVertex(V);
     }
+    cout << "Penghapusan edge dengan nama " << name << " di semua vertex selesai.\n";
 }
 
-void deleteVertex(Graph& G, string expertiseGroup) {
-    adrVertex V = findVertex(G, expertiseGroup);
 
+string deleteEdge(Graph& G, string expertiseGroup, string name) {
+    adrVertex V = findVertex(G, expertiseGroup);
     if (V) {
-        adrVertex temp = V;
-        V = NextVertex(V);
-        adrEdge E = FirstEdge(temp);
-        while (E) {
-            adrEdge tempEdge = E;
-            E = NextEdge(E);
+        adrEdge prev = NULL;
+        adrEdge curr = FirstEdge(V);
+
+        while (curr) {
+            if (Name(curr) == name) {
+                if (prev == NULL) {
+                    FirstEdge(V) = NextEdge(curr);
+                } else {
+                    NextEdge(prev) = NextEdge(curr);
+                }
+                delete curr;
+                return name + " berhasil dihapus dari Kelompok Keilmuan " + expertiseGroup + ".\n";
+            }
+
+            prev = curr;
+            curr = NextEdge(curr);
+        }
+        return "Nama tidak ditemukan di Kelompok Keilmuan " + expertiseGroup + ".\n";
+    } else {
+        return "Kelompok Keilmuan tidak ditemukan.\n";
+    }
+}
+
+
+string deleteVertex(Graph& G, string expertiseGroup) {
+    if (!isEmpty(G)){
+        adrVertex prev = NULL;
+        adrVertex curr = FirstVertex(G);
+
+        while (curr && ExpertiseGroups(curr) != expertiseGroup) {
+            prev = curr;
+            curr = NextVertex(curr);
+        }
+
+        if (curr == NULL) {
+            return "Kelompok Keilmuan " + expertiseGroup + " tidak ditemukan.\n";
+        }
+
+        adrEdge edge = FirstEdge(curr);
+        while (edge) {
+            adrEdge tempEdge = edge;
+            edge = NextEdge((edge));
             delete tempEdge;
         }
 
-        delete temp;
+        if (prev == NULL) {
+            FirstVertex(G) = NextVertex(curr);
+        } else {
+            NextVertex(prev) = NextVertex(curr);
+        }
+
+        delete curr;
+        return "Kelompok Keilmuan '" + expertiseGroup + "' berhasil dihapus.\n";
     } else {
-        cout << "Kelompok Keilmuan Belum Terbentuk.\n";
+        return  "Graph kosong.\n";
     }
 }
+
 
 void menu() {
     Graph G;
     createGraph(G);
-    int choice;
+    int choice, total, subChoice;
+    string group, name;
     do {
         cout << "\n<------------------  Menu  ------------------>\n \n";
         cout << "1. Tambah Anggota / Kelompok Keilmuan\n";
@@ -141,101 +222,105 @@ void menu() {
         cout << "3. Hapus Anggota / Kelompok Keilmuan\n";
         cout << "0. keluar\n";
         cout << "\n<--------------------------------------------> \n";
-        cout << "Pilih : ";
-        cin >> choice;
-
+        choice = getIntInput("Pilih : ");
         system("cls");
 
         switch (choice) {
         case 1: {
-            int subChoice;
             cout << "\n<-------------------------------------------->\n \n";
             cout << "1. Tambah Kelompok Keilmuan\n";
-            cout << "2. Tambah Angota ke Kelompok Keilmuan\n";
-            cout << "3. Tambah Angota dan Kelompok Keilmuan\n";
+            cout << "2. Tambah Anggota ke Kelompok Keilmuan\n";
+            cout << "3. Tambah Anggota dan Kelompok Keilmuan\n";
             cout << "\n<--------------------------------------------> \n";
-            cout << "Pilih : ";
-            cin >> subChoice;
+            subChoice = getIntInput("Pilih : ");
 
-            if (subChoice == 1) {
-                string group;
-                cout << "Masukkan Nama Kelompok Keilmuan : ";
-                cin.ignore();
-                getline(cin, group);
-                addVertex(G, group);
-            } else if (subChoice == 2) {
-                string group, name;
-                cout << "Masukkan Nama Kelompok Keilmuan : ";
-                cin.ignore();
-                getline(cin, group);
-                cout << "Masukkan Nama Anggota \t:";
-                getline(cin, name);
-                addEdge(G, group, name);
-            } else if (subChoice == 3) {
-                string group, name;
-                int total;
-                cout << "Masukkan Nama Kelompok Keilmuan : ";
-                cin.ignore();
-                getline(cin, group);
-                cout << "Masukkan Jumlah Orang \t:";
-                cin >> total;
-                for (int i = 1; i <= total; i++) {
-                    cout << "Masukkan Nama orang ke " << i << " \t: ";
-                    cin.ignore();
-                    getline(cin, name);
+            switch (subChoice) {
+                case 1:
+                    group = getStringInput("Masukkan Nama Kelompok Keilmuan : ");
+                    addVertex(G, group);
+                    system("cls");
+                    cout << "\n Data Berhasil Disimpan! \n";
+                    break;
+                case 2:
+                    group = getStringInput("Masukkan Nama Kelompok Keilmuan : ");
+                    name = getStringInput("Masukkan Nama Anggota \t\t: ");
                     addEdge(G, group, name);
-                }
+                    system("cls");
+                    cout << "\n Data Berhasil Disimpan! \n";
+                    break;
+                case 3:
+                    group = getStringInput("Masukkan Nama Kelompok Keilmuan : ");
+                    total = getIntInput("Masukkan Jumlah Orang \t\t: ");
+                    for (int i = 1; i <= total; i++) {
+                        name = getStringInput("Masukkan Nama orang ke " + to_string(i) + " \t: ");
+                        addEdge(G, group, name);
+                    }
+                    system("cls");
+                    cout << "\n Data Berhasil Disimpan! \n";
+                    break;
+                default:
+                    cout << "Pilihan salah! Silakan Coba Lagi.\n";
             }
-
-            system("cls");
-            cout << "\n Data Berhasil Disimpan! \n";
             break;
         }
         case 2: {
-            int subChoice;
             cout << "\n<-------------------------------------------->\n \n";
             cout << "1. Tampilkan Anggota Berdasarkan Kelompok Keilmuan\n";
             cout << "2. Tampilkan Anggota Berdasarkan Nama\n";
             cout << "3. Tampilkan Semua\n";
             cout << "\n<--------------------------------------------> \n";
-            cout << "Pilih : ";
-            cin >> subChoice;
+            subChoice = getIntInput("Pilih : ");
 
-            if (subChoice == 1) {
-                /*...*/
-            } else if (subChoice == 2) {
-                /*...*/
-            } else if (subChoice == 3) {
-                /*...*/
+            switch (subChoice) {
+                case 1:
+                    group = getStringInput("Masukkan Nama Kelompok Keilmuan : ");
+                    displayGroupMembers(G, group);
+                    break;
+                case 2:
+                    name = getStringInput("Masukkan Nama Anggota yang ingin dicari : ");
+                    displayGroupByName(G, name);
+                    break;
+                case 3:
+                    displayAllGroups(G);
+                    break;
+                default:
+                    cout << "Pilihan salah! Silakan Coba Lagi.\n";
             }
-
             break;
         }
         case 3: {
-            int subChoice;
             cout << "\n<-------------------------------------------->\n \n";
             cout << "1. Hapus Anggota Dari Kelompok Keilmuan\n";
             cout << "2. Hapus Kelompok Keilmuan\n";
+            cout << "3. Hapus Anggota Dari Semua Kelompok Keilmuan\n";
             cout << "\n<--------------------------------------------> \n";
-            cout << "Pilih : ";
+            subChoice = getIntInput("Pilih : ");
 
-            cin >> subChoice;
-
-            if (subChoice == 1) {
-                /*...*/
-            } else if (subChoice == 2) {
-                /*...*/
+            switch (subChoice) {
+                case 1:
+                    group = getStringInput("Masukkan Nama Kelompok Keilmuan : ");
+                    name = getStringInput("Masukkan Nama Anggota \t\t: ");
+                    system("cls");
+                    cout << deleteEdge(G, group, name);
+                    break;
+                case 2:
+                    group = getStringInput("Masukkan Nama Kelompok Keilmuan : ");
+                    system("cls");
+                    cout << deleteVertex(G, group);
+                    break;
+                case 3:
+                    name = getStringInput("Masukkan Nama Anggota yang ingin dihapus: ");
+                    system("cls");
+                    deleteEdgeInAllVertex(G, name);
+                    break;
+                default:
+                    cout << "Pilihan salah! Silakan Coba Lagi.\n";
             }
-
-            system("cls");
-            cout << "\n Data Berhasil Dihapus! \n";
             break;
         }
         case 0:
             cout << "Keluar...\n";
             break;
-        default:
-            cout << "Pilihan salah! Silakan Coba Lagi.\n";
         }
     } while (choice != 0);
 }

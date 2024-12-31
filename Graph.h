@@ -1,12 +1,10 @@
+#include<limits>
 #define ExpertiseGroups(V) V->ExpertiseGroups
 #define NextVertex(V) V->NextVertex
 #define FirstEdge(V) V->FirstEdge
 #define Name(E) E->Name
 #define NextEdge(E) E->NextEdge
 #define FirstVertex(E) E.FirstVertex
-
-struct Edge;
-struct Vertex;
 
 using namespace std;
 
@@ -38,6 +36,10 @@ void addEdge(Graph& G, string expertiseGroup, string name);
 void insertEdge(adrVertex& V, string name);
 void displayGroupMembers(Graph& G, string expertiseGroup);
 void displayAllGroups(Graph G);
-void deleteEdge(Graph& G, string name);
-void deleteVertex(Graph& G, string expertiseGroup);
+void displayGroupByName(Graph G, string name);
+string deleteEdge(Graph& G, string expertiseGroup, string name);
+void deleteEdgeInAllVertex(Graph& G, string name);
+string deleteVertex(Graph& G, string expertiseGroup);
 void menu();
+int getIntInput(const string& message);
+string getStringInput(const string& message);
